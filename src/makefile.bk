@@ -1,0 +1,74 @@
+#CFLAGS=-O0 -ggdb -std=c99
+CFLAGS=-DDUP_SYSCONFIG_DIR=\"/etc/scholar2\" -DDUP_DATA_DIR=\"/ape/scholar2\" -fPIC -O0 -g -Wall 
+
+.PHONY: clean all
+
+all: main dupserver dupclient batch libdup.so 
+
+clean:
+	rm -f *.o main dupserver dupclient batch libdup.so *.gch
+
+main: main.o dup.o split.o util.o simi.o simiw.o lookup3.o conf.o hashmap.o hashmap.o 
+	gcc $(CFLAGS)  main.o dup.o split.o util.o simi.o simiw.o lookup3.o conf.o hashmap.o -lm -o main
+dupserver: dup.o split.o util.o simi.o simiw.o lookup3.o client.o server.o conf.o serverm.o hashmap.o 
+	gcc $(CFLAGS)  dup.o split.o util.o simi.o simiw.o lookup3.o client.o server.o conf.o serverm.o hashmap.o -lm -lpthread -o dupserver
+dupclient: dup.o split.o util.o simi.o simiw.o lookup3.o client.o server.o conf.o clientm.o hashmap.o 
+	gcc $(CFLAGS)  dup.o split.o util.o simi.o simiw.o lookup3.o client.o server.o conf.o clientm.o hashmap.o -lm -lpthread -o dupclient
+batch: dup.o split.o util.o simi.o simiw.o lookup3.o conf.o batch.o hashmap.o 
+	gcc $(CFLAGS)  batch.o dup.o split.o util.o simi.o simiw.o lookup3.o conf.o hashmap.o -lm -o batch
+libdup.so: dup.o split.o util.o simi.o simiw.o lookup3.o client.o server.o conf.o clientm.o hashmap.o 
+	gcc $(CFLAGS)  dup.o split.o util.o simi.o simiw.o lookup3.o client.o server.o conf.o clientm.o hashmap.o -lm -lpthread -shared -o libdup.so
+
+main.o: main.c simi.h simiw.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c main.c 
+dup.o: dup.c dup.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c dup.c 
+split.o: split.c split.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c split.c 
+util.o: util.c util.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c util.c 
+simi.o: simi.c simi.h lookup3.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c simi.c 
+simiw.o: simiw.c simiw.h lookup3.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c simiw.c 
+lookup3.o: lookup3.c lookup3.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c lookup3.c 
+client.o: client.c client.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c client.c 
+clientm.o: clientm.c clientm.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c clientm.c 
+conf.o: conf.c conf.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c conf.c 
+scheduler.o: scheduler.c scheduler.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c scheduler.c 
+server.o: server.c server.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c server.c 
+serverm.o: serverm.c serverm.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c serverm.c 
+batch.o: batch.c batch.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c batch.c 
+hashmap.o: hashmap.c hashmap.h lookup3.h common.h conf.h data.h define.h
+	gcc $(CFLAGS)  -c hashmap.c 
+
+install:
+	sudo cp libdup.so /usr/local/lib/
+	sudo chmod 777 /usr/local/lib/libdup.so
+	sudo mkdir -p /usr/local/include/dup/
+	sudo cp *.h /usr/local/include/dup/
+	sudo chmod 777 /usr/local/include/dup -R
+	sudo mkdir -p /ape/scholar2/deduplication/
+	sudo touch /ape/scholar2/deduplication/server.log
+	sudo chmod 777 /ape/scholar2 -R
+	cp ./dupserver /usr/sbin/
+	cp ./dupd /etc/init.d/
+	chmod +x /etc/init.d/dupd
+
+install-auto:
+	ln -sf /etc/init.d/dupd /etc/rc3.d/S99dupd
+
+uninstall:
+	sudo rm /usr/local/lib/libdup.so
+	sudo rm -rf /usr/local/include/dup
+	sudo rm /usr/sbin/dupserver
+	sudo rm /etc/init.d/dupd
+

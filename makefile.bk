@@ -1,0 +1,24 @@
+dup_sysconfig_dir="/etc/scholar2"
+dup_data_dir="/ape/scholar2"
+SUBDIRS := src
+
+.PHONY: all
+	all: subdirs
+
+subdirs:
+	for n in $(SUBDIRS); do $(MAKE) -C $$n ; done
+
+clean:
+	for n in $(SUBDIRS); do $(MAKE) -C $$n clean; done
+
+install :
+	for n in $(SUBDIRS); do $(MAKE) -C $$n install; done
+	cp conf/dup.client.conf $(dup_sysconfig_dir)/
+	cp conf/dup.server.conf $(dup_sysconfig_dir)/
+	sudo chmod 777 $(dup_sysconfig_dir)/ -R
+	cp data/index_table.dup $(dup_data_dir)/deduplication/
+	sudo chmod 777 $(dup_data_dir)/deduplication -R
+
+uninstall:
+	for n in $(SUBDIRS); do $(MAKE) -C $$n uninstall; done
+

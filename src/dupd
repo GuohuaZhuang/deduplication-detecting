@@ -1,0 +1,31 @@
+#!/bin/sh
+
+#chkconfig: 2345 80 05 
+#descrīption: service 
+
+case $1 in
+
+start)
+	export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games"
+	nohup dupserver 1> /ape/scholar2/deduplication/server.log 2>&1 &
+	echo "[INFO] -- start dupserver now, please waiting...";
+	sleep 10;
+	echo "[INFO] -- start dupserver ok!";
+;;
+
+stop)
+	ps -ef | grep dupserver | grep -v grep | awk '{print"sudo kill -HUP ",$2}' | sh 
+	echo "[INFO] -- stop dupserver now, please waiting...";
+	sleep 10;
+	# /bin/cp /ape/scholar2/deduplication/index_table.dup /ape/scholar2/deduplication/index_table.dup.bk
+	echo "[INFO] -- stop dupserver ok!";
+;;
+
+*)
+	N=/etc/init.d/dupd
+	# echo "Usage: $N {start|stop|restart|reload|force-reload|status}" >&2
+	echo "Usage: $N {start|stop|restart|force-reload|status}" >&2
+	exit 1;
+;;
+
+esac
